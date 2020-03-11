@@ -2,10 +2,11 @@ const express = require("express");
 var https = require("https");
 var fs = require("fs");
 var elasticsearch = require("elasticsearch");
+var config = require("../config.json");
 
 /** Elasticsearch Client */
 var client = new elasticsearch.Client({
-  hosts: ["http://localhost:9200"]
+  hosts: [`${config.elasticHost}`]
 });
 
 const app = express();
@@ -15,11 +16,11 @@ client.cat
   .catch(err => console.error(`Error connecting to the es client: ${err}`));
 
 // Search Endpoint.
-app.get("/a_search", (req, res) => {
+app.get(`${config.searchEndPoint}`, (req, res) => {
   // calback API
   let searchBody = {
-    size: parseInt(req.query.limit) || 50,
-    from: parseInt(req.query.offset) || 0,
+    size: parseInt(req.query.limit) || config.basicLimit,
+    from: parseInt(req.query.offset) || config.basicOffset,
     query: {}
   };
   if (req.query.words && req.query.words.length) {
@@ -78,7 +79,7 @@ app.get("/a_search", (req, res) => {
 });
 
 // Expiration Endpoint.
-app.put("/expiration", (req, res) => {
+app.put(`${config.experationEndPoint}`, (req, res) => {
   client
     .update({
       index: "store",
@@ -111,8 +112,8 @@ app.put("/expiration", (req, res) => {
 https
   .createServer(
     {
-      key: fs.readFileSync("ssl/key.pem"),
-      cert: fs.readFileSync("ssl/cert.pem")
+      key: fs.readFileSync(`${config.sslPath}key.pem`),
+      cert: fs.readFileSync(`${config.sslPath}cert.pem`)
     },
     app
   )

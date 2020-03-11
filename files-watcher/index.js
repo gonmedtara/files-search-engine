@@ -1,10 +1,11 @@
 var elasticsearch = require("elasticsearch");
 const chokidar = require("chokidar");
 var textract = require("textract");
+var config = require("../config.json");
 
 /** Elasticsearch Client */
 var client = new elasticsearch.Client({
-  hosts: ["http://localhost:9200"]
+  hosts: [`${config.elasticHost}`]
 });
 
 /** Test Elasticsearch Client connection */
@@ -36,7 +37,7 @@ client.ping(
 function createMapping() {
   /** Files watcher */
   chokidar
-    .watch("./files/")
+    .watch([`${config.filesPath}`)
     .on("add", async filepath => {
       let data = {
         fileName: filepath.split("\\")[filepath.split("\\").length - 1],
