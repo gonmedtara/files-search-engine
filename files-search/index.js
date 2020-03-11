@@ -1,4 +1,6 @@
 const express = require("express");
+var https = require("https");
+var fs = require("fs");
 var elasticsearch = require("elasticsearch");
 
 /** Elasticsearch Client */
@@ -100,6 +102,18 @@ app.put("/expiration", (req, res) => {
     );
 });
 
-app.listen(3000, function() {
+// Run on http
+/*app.listen(80, function() {
   console.log(`Server is running on port 3000`);
-});
+});*/
+
+// Run on https
+https
+  .createServer(
+    {
+      key: fs.readFileSync("ssl/key.pem"),
+      cert: fs.readFileSync("ssl/cert.pem")
+    },
+    app
+  )
+  .listen(443);
