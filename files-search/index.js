@@ -8,7 +8,7 @@ var config = require("../config.json");
 var client = new elasticsearch.Client({
   hosts: [`${config.elasticHost}`]
 });
-
+var wordSpacing = config.wordSpacing;
 const app = express();
 client.cat
   .indices({ v: true })
@@ -31,7 +31,7 @@ app.get(`${config.searchEndPoint}`, (req, res) => {
           {
             multi_match: {
               query: req.query.words,
-              fields: ["fileName", "filePath", "fileContent"]
+              fields: ["fileName^2", "filePath", "fileContent^5"]
             }
           },
           {
@@ -42,6 +42,14 @@ app.get(`${config.searchEndPoint}`, (req, res) => {
           }
         ]
       }
+    };
+    searchBody = {
+      ...searchBody,
+      sort: [
+        {
+          _score: "desc"
+        }
+      ]
     };
   } else {
     searchBody.query = {
@@ -66,14 +74,31 @@ app.get(`${config.searchEndPoint}`, (req, res) => {
     },
     (err, result) => {
       if (err) console.log(err);
-      if (result)
+      if (result) {
         res.send({
           count: result.hits.total.value,
           contents: result.hits.hits.map(elm => ({
             ...elm._source,
-            id: elm._id
+            id: elm._id,
+            fileContent: req.query.words
+              ? elm._source.fileContent.slice(
+                  elm._source.fileContent
+                    .toUpperCase()
+                    .indexOf(req.query.words.toUpperCase()) -
+                    wordSpacing <
+                    0
+                    ? 0
+                    : elm._source.fileContent
+                        .toUpperCase()
+                        .indexOf(req.query.words.toUpperCase()) - wordSpacing,
+                  elm._source.fileContent
+                    .toUpperCase()
+                    .indexOf(req.query.words.toUpperCase()) + wordSpacing
+                )
+              : ""
           }))
         });
+      }
     }
   );
 });

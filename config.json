@@ -4,6 +4,7 @@
   "experationEndPoint": "/expiration",
   "basicLimit": 50,
   "basicOffset": 0,
-  "filesPath": "./files/",
-  "sslPath": "../ssl/"
+  "filesPath": "../files/",
+  "sslPath": "../ssl/",
+  "wordSpacing": 150
 }
