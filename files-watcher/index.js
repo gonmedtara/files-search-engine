@@ -1,6 +1,7 @@
 var elasticsearch = require("elasticsearch");
 const chokidar = require("chokidar");
 var textract = require("textract");
+var networkDrive = require("windows-network-drive");
 var config = require("../config.json");
 var fs = require("fs");
 
@@ -37,36 +38,45 @@ client.ping(
 
 function createMapping() {
   /** Files watcher */
-  chokidar
-    .watch([`${config.filesPath}`])
-    .on("add", async filepath => {
-      let data = {
-        fileName: filepath.split("\\")[filepath.split("\\").length - 1],
-        filePath: filepath.replace(/\\/g, "/"),
-        fileContent: ""
-      };
-      fs.stat(data.filePath, function(err, stats) {
-        data.created_on = stats.ctime || new Date();
-        textract.fromFileWithPath(data.filePath, async (error, text) => {
-          let insertion = await insertDoc(
-            "store",
-            new Date().valueOf(),
-            "files",
-            {
-              ...data,
-              expired: false,
-              fileContent: error == null ? text : ""
-            }
-          );
-          console.log(insertion);
-          console.log(
-            `[${new Date().toLocaleString()}] ${filepath} has been added.`
-          );
+  networkDrive
+    .mount(
+      `${config.sharedPath}`,
+      undefined,
+      `${config.sharedLogin}`,
+      `${config.sharedPassword}`
+    )
+    .then(function(driveLetter) {
+      chokidar
+        .watch([`${driveLetter}:`])
+        .on("add", async filepath => {
+          let data = {
+            fileName: filepath.split("\\")[filepath.split("\\").length - 1],
+            filePath: filepath.replace(/\\/g, "/"),
+            fileContent: ""
+          };
+          fs.stat(data.filePath, function(err, stats) {
+            data.created_on = stats.ctime || new Date();
+            textract.fromFileWithPath(data.filePath, async (error, text) => {
+              let insertion = await insertDoc(
+                "store",
+                new Date().valueOf(),
+                "files",
+                {
+                  ...data,
+                  expired: false,
+                  fileContent: error == null ? text : ""
+                }
+              );
+              console.log(insertion);
+              console.log(
+                `[${new Date().toLocaleString()}] ${filepath} has been added.`
+              );
+            });
+          });
+        })
+        .on("unlink", filepath => {
+          console.log(`${filepath} has been removed.`);
         });
-      });
-    })
-    .on("unlink", filepath => {
-      console.log(`${filepath} has been removed.`);
     });
 }
 const insertDoc = async function(indexName, _id, mappingType, data) {

@@ -4,7 +4,9 @@
   "experationEndPoint": "/expiration",
   "basicLimit": 50,
   "basicOffset": 0,
-  "filesPath": "../files/",
+  "sharedPath": "\\\\WIN-EMC1NHA8S4G\\open-test",
+  "sharedLogin": "Administrator",
+  "sharedPassword": "Open2020",
   "sslPath": "../ssl/",
   "wordSpacing": 150
 }
