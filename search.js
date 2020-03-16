@@ -2,7 +2,7 @@ const express = require("express");
 var https = require("https");
 var fs = require("fs");
 var elasticsearch = require("elasticsearch");
-var config = require("../config.json");
+var config = require("./config.json");
 
 /** Elasticsearch Client */
 var client = new elasticsearch.Client({
@@ -128,18 +128,20 @@ app.put(`${config.experationEndPoint}`, (req, res) => {
     );
 });
 
-// Run on http
-/*app.listen(80, function() {
-  console.log(`Server is running on port 3000`);
-});*/
-
-// Run on https
-https
-  .createServer(
-    {
-      key: fs.readFileSync(`${config.sslPath}key.pem`),
-      cert: fs.readFileSync(`${config.sslPath}cert.pem`)
-    },
-    app
-  )
-  .listen(443);
+if (config.ssl) {
+  // Run on https
+  https
+    .createServer(
+      {
+        key: fs.readFileSync(`${config.sslPath}key.pem`),
+        cert: fs.readFileSync(`${config.sslPath}cert.pem`)
+      },
+      app
+    )
+    .listen(443);
+} else {
+  // Run on http
+  app.listen(config.httpPort, function() {
+    console.log(`Server is running on port ${config.httpPort}`);
+  });
+}

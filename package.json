@@ -1,16 +1,20 @@
 {
-  "name": "files-watcher",
+  "name": "files-search-engine",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "watcher": "node watcher.js",
+    "search": "node search.js",
+    "start": "npm run watcher | npm run search"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.17.1",
+    "https": "^1.0.0",
     "chokidar": "^3.3.1",
     "elasticsearch": "^16.6.0",
     "fs": "0.0.1-security",

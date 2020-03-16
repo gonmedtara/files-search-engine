@@ -2,7 +2,7 @@ var elasticsearch = require("elasticsearch");
 const chokidar = require("chokidar");
 var textract = require("textract");
 var networkDrive = require("windows-network-drive");
-var config = require("../config.json");
+var config = require("./config.json");
 var fs = require("fs");
 
 /** Elasticsearch Client */
@@ -40,7 +40,7 @@ function createMapping() {
   /** Files watcher */
   networkDrive
     .mount(
-      `\\\\192.168.155.214\\SharedHnet\\kbs`,
+      `${config.sharedPath}`,
       undefined,
       `${config.sharedLogin}`,
       `${config.sharedPassword}`
@@ -57,16 +57,11 @@ function createMapping() {
           fs.stat(data.filePath, function(err, stats) {
             data.created_on = stats.ctime || new Date();
             textract.fromFileWithPath(data.filePath, async (error, text) => {
-              let insertion = await insertDoc(
-                "store",
-                new Date().valueOf(),
-                "files",
-                {
-                  ...data,
-                  expired: false,
-                  fileContent: error == null ? text : ""
-                }
-              );
+              let insertion = await insertDoc("store", data.filePath, "files", {
+                ...data,
+                expired: false,
+                fileContent: error == null ? text : ""
+              });
               console.log(insertion);
               console.log(
                 `[${new Date().toLocaleString()}] ${filepath} has been added.`
@@ -76,6 +71,18 @@ function createMapping() {
         })
         .on("unlink", filepath => {
           console.log(`${filepath} has been removed.`);
+          client.delete(
+            {
+              index: "store",
+              id: filepath.replace(/\\/g, "/")
+            },
+            (err, result) => {
+              if (err) console.log(err);
+              if (result) {
+                console.log(result);
+              }
+            }
+          );
         });
     });
 }

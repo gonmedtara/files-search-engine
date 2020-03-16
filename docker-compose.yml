@@ -12,21 +12,20 @@ services:
       - "http.port=9200"
       - "http.host=0.0.0.0"
       - "transport.host=127.0.0.1"
+      - "ELASTIC_PASSWORD=4J9c*9U*m28v@aw4e&^MUFV"
+      - "xpack.security.enabled=true"
     volumes:
       - ./backup:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-  # search-engine:
-  #   restart: always
-  #   build: ./
-  #   ports:
-  #     - "3000:3000"
-  # depends_on:
-  #   - "elasticsearch"
-  # links:
-  #   - "elasticsearch"
+  search-engine:
+    build: ./
+    ports:
+      - "443:443"
+      - "3000:3000"
+    command: sh /usr/src/files-search-engine/start.sh
+    volumes:
+      - ./config.json:/usr/src/files-search-engine/config.json
+      - ./ssl:/usr/src/files-search-engine/ssl
+    links:
+      - elasticsearch

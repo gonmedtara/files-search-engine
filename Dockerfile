@@ -1,33 +1,15 @@
-# # Set node image
-FROM node:lts-alpine
 
-#################
-## Run Watcher ###
-# Set working directory
-WORKDIR /usr/src/files-watcher
+FROM node:10
 
-# Copy all project
-COPY ./files-watcher .
+MAINTAINER Gontara Mohamed
 
-# Install  app dependencies
-RUN npm install 
+RUN apt-get update
 
-# # Run project
-RUN npm run start 
-##################
+RUN apt-get install -y xpdf
 
+RUN apt-get install -y antiword
 
-##################
-### Run Search ###
-# Set working directory
-WORKDIR /usr/src/file-search
+WORKDIR /usr/src/files-search-engine
 
-# Copy all project
-COPY ./files-search .
+COPY ./ .
 
-# Install  app dependencies
-RUN npm install 
-
-# # Run project
-RUN npm run start 
-##################
