@@ -18,14 +18,3 @@ services:
       - ./backup:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
-  search-engine:
-    build: ./
-    ports:
-      - "443:443"
-      - "3000:3000"
-    command: sh /usr/src/files-search-engine/start.sh
-    volumes:
-      - ./config.json:/usr/src/files-search-engine/config.json
-      - ./ssl:/usr/src/files-search-engine/ssl
-    links:
-      - elasticsearch
